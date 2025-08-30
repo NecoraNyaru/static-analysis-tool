@@ -1,0 +1,6 @@
+git clone https://github.com/thorfdbg/libjpeg.git
+git clone https://github.com/madler/zlib.git
+git clone https://github.com/pnggroup/libpng.git
+git clone https://github.com/libsdl-org/libtiff.git
+git clone https://github.com/boostorg/boost.git
+git clone https://github.com/boostorg/thread.git
