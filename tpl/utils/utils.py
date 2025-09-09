@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 def save_js(content, path):
     with open(path, "w") as save_f:
-        json.dump(content, save_f)
+        json.dump(content, save_f, indent=2, ensure_ascii=False)
 
 
 def add_line(line, path):

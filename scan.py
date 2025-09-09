@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 # scan.py
 import argparse
 import os
@@ -24,9 +26,17 @@ from oss.detector.Detector import detect as oss_detect
 def handle_tpl(args):
     """Handler for the 'tpl' command."""
     print("\n🚀 Running TPL Scanner...")
-    scanner_obj = TPLScanner(args.directory)
+    scan_dir = args.directory
+    if not os.path.isdir(scan_dir):
+        print(f"❌ Error: Target directory not found at {scan_dir}", file=sys.stderr)
+        sys.exit(1)
+    scanner_obj = TPLScanner(scan_dir)
     results = scanner_obj.to_dict()
     output_path = os.path.abspath(args.output)
+    output_dir = os.path.dirname(output_path)
+    if output_dir and not os.path.isdir(output_dir):
+        print(f"❌ Error: Output directory not found at {output_dir}", file=sys.stderr)
+        sys.exit(1)
     save_js(results, output_path)
     print(f"\n✅ TPL Scanner analysis complete. Results saved to {output_path}")
 
@@ -39,8 +49,11 @@ def handle_oss_collect(args):
     output_dir_abs = os.path.abspath(args.output_dir)
     ctags_path_abs = os.path.abspath(args.ctags_path) if args.ctags_path else None
 
-    if not os.path.exists(input_file_abs):
+    if not os.path.isfile(input_file_abs):
         print(f"❌ Error: Input file not found at {input_file_abs}", file=sys.stderr)
+        sys.exit(1)
+    if not os.path.isdir(output_dir_abs):
+        print(f"❌ Error: Output directory not found at {output_dir_abs}", file=sys.stderr)
         sys.exit(1)
 
     print("✅ Executing collector...")
@@ -59,6 +72,13 @@ def handle_oss_preprocess(args):
     # Convert paths to absolute to ensure they are valid after changing directories
     input_dir_abs = os.path.abspath(args.input_dir)
     output_dir_abs = os.path.abspath(args.output_dir)
+
+    if not os.path.isdir(input_dir_abs):
+        print(f"❌ Error: Input directory not found at {input_dir_abs}", file=sys.stderr)
+        sys.exit(1)
+    if not os.path.isdir(output_dir_abs):
+        print(f"❌ Error: Output directory not found at {output_dir_abs}", file=sys.stderr)
+        sys.exit(1)
 
     print("✅ Executing preprocessor...")
     if args.mode == "full":
@@ -87,9 +107,16 @@ def handle_oss_detect(args):
     ctags_path_abs = os.path.abspath(args.ctags_path) if args.ctags_path else None
 
     if not os.path.isdir(target_dir_abs):
-        print(
-            f"❌ Error: Target directory not found at {target_dir_abs}", file=sys.stderr
-        )
+        print(f"❌ Error: Target directory not found at {target_dir_abs}", file=sys.stderr)
+        sys.exit(1)
+    if not os.path.isdir(output_dir_abs):
+        print(f"❌ Error: Output directory not found at {output_dir_abs}", file=sys.stderr)
+        sys.exit(1)
+    if not os.path.isdir(collector_dir_abs):
+        print(f"❌ Error: Collector directory not found at {collector_dir_abs}", file=sys.stderr)
+        sys.exit(1)
+    if not os.path.isdir(preprocessor_dir_abs):
+        print(f"❌ Error: Preprocessor directory not found at {preprocessor_dir_abs}", file=sys.stderr)
         sys.exit(1)
 
     print("✅ Executing detector...")
@@ -107,8 +134,17 @@ def handle_oss_detect(args):
 def handle_osv_api(args):
     """Handler for the 'osv api' command."""
     print("\n🚀 Running OSV Vendored Library Scanner (API)...")
+    scan_dir = args.directory
+    if not os.path.isdir(scan_dir):
+        print(f"❌ Error: Target directory not found at {scan_dir}", file=sys.stderr)
+        sys.exit(1)
+    output_path = os.path.abspath(args.output)
+    output_dir = os.path.dirname(output_path)
+    if output_dir and not os.path.isdir(output_dir):
+        print(f"❌ Error: Output directory not found at {output_dir}", file=sys.stderr)
+        sys.exit(1)
     scan_project_for_vendored_libs(
-        project_root=args.directory,
+        project_root=scan_dir,
         scan_git=args.scan_git,
         threshold=args.threshold,
         output_file=args.output,
@@ -121,8 +157,17 @@ def handle_osv_api(args):
 def handle_osv_cli(args):
     """Handler for the 'osv cli' command."""
     print("\n🚀 Running OSV Scanner (CLI Wrapper)...")
+    scan_dir = args.directory
+    if not os.path.isdir(scan_dir):
+        print(f"❌ Error: Target directory not found at {scan_dir}", file=sys.stderr)
+        sys.exit(1)
+    output_path = os.path.abspath(args.output)
+    output_dir = os.path.dirname(output_path)
+    if output_dir and not os.path.isdir(output_dir):
+        print(f"❌ Error: Output directory not found at {output_dir}", file=sys.stderr)
+        sys.exit(1)
     run_osv_scanner_cli(
-        project_path=args.directory,
+        project_path=scan_dir,
         output_file=args.output,
         scanner_path=args.scanner_path,
     )
@@ -141,7 +186,7 @@ def main():
         formatter_class=argparse.RawTextHelpFormatter,
     )
     subparsers = parser.add_subparsers(
-        dest="target", required=True, help="The target to detect: tpl or oss"
+        dest="target", required=True, help="The target to detect: tpl, oss, osv"
     )
 
     # --- TPL Subparser ---

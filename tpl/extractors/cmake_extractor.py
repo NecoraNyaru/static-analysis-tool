@@ -82,7 +82,6 @@ CONAN_CMAKE_OPTIONS = [
 class Lib(NamedTuple):
     filenames: list
     version: str
-    fromfile: str
     content: dict
 
 
@@ -100,7 +99,12 @@ class CmakeExtractor(Extractor):
         self.target = target
 
     def to_dict(self):
-        return {"deps": self.deps, "type": self.type, "libs": self.libs_found}
+        return {
+            "deps": self.deps,
+            "type": self.type,
+            "libs": self.libs_found,
+            "fromfile": self.target
+        }
 
     def run_extractor(self):
         if not self.target.endswith("CMakeLists.txt") and not self.target.endswith(
@@ -236,7 +240,7 @@ class CmakeExtractor(Extractor):
                         i.body[1].contents.lower() != "names"
                         and i.body[1].contents.lower() not in FIND_LIBRARY_OPTIONS
                     ):
-                        lib = Lib([i.body[1].contents], "", self.target, func_body)
+                        lib = Lib([i.body[1].contents], "", func_body)
                         self.libs_found.append(lib._asdict())
                     if i.body[1].contents.lower() == "names":
                         names = []
@@ -244,7 +248,7 @@ class CmakeExtractor(Extractor):
                             if arg.contents.lower() in FIND_LIBRARY_OPTIONS:
                                 break
                             names.append(arg.contents)
-                        lib = Lib(names, "", self.target, func_body)
+                        lib = Lib(names, "", func_body)
                         self.libs_found.append(lib._asdict())
 
     def find_package_analyzer(self, contents):
