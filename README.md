@@ -47,17 +47,31 @@ Managing dependencies and identifying third-party code in C and C++ projects can
     cd static-analysis-tool
     ```
 
-2.  **Install the required Python packages:**
+2.  **Create and activate a virtual environment:**
+    ```sh
+    python3 -m venv venv
+    source venv/bin/activate
+    ```
+    *Note: On Windows, use `venv\Scripts\activate` to activate the virtual environment.*
+
+3.  **Install the required Python packages:**
     ```sh
     pip install -r requirements.txt
     ```
 
+4.  **(Optional) Make scripts executable:**
+
+    To run the scripts directly (e.g., `./scan.py`), grant them execute permissions:
+    ```sh
+    chmod +x scan.py obtain_repo.py
+    ```
+
 ## 📖 Usage
 
-The primary entry point for all operations is `scan.py`.
+The primary entry point for all operations is `scan.py`. After making it executable, you can call it directly. The following examples assume you have done so.
 
 ```sh
-python scan.py [tpl | oss | osv] [options...]
+./scan.py [tpl | oss | osv] [options...]
 ```
 
 ### 1. TPL Scanner: Identifying Declared Dependencies
@@ -66,7 +80,7 @@ This scanner analyzes build files to find explicitly configured dependencies.
 
 **Command:**
 ```sh
-python scan.py tpl -d <path/to/your/project> -o <path/to/output.json>
+./scan.py tpl -d <path/to/your/project> -o <path/to/output.json>
 ```
 
 - `-d, --directory`: Project directory to scan.
@@ -74,7 +88,7 @@ python scan.py tpl -d <path/to/your/project> -o <path/to/output.json>
 
 **Example:**
 ```sh
-python scan.py tpl -d ./my-awesome-project -o my-project-dependencies.json
+./scan.py tpl -d ./my-awesome-project -o my-project-dependencies.json
 ```
 
 ### 2. OSS Identifier: Detecting Reused Source Code
@@ -87,7 +101,7 @@ Build a database of function hashes from known open-source projects.
 
 **Command:**
 ```sh
-python scan.py oss collect -i <path/to/urls.txt> -o <path/to/collector_output> --ctags-path <path/to/ctags_binary>
+./scan.py oss collect -i <path/to/urls.txt> -o <path/to/collector_output> --ctags-path <path/to/ctags_binary>
 ```
 
 - `-i, --input`: Text file with one git clone URL per line.
@@ -96,7 +110,7 @@ python scan.py oss collect -i <path/to/urls.txt> -o <path/to/collector_output> -
 
 **Example:**
 ```sh
-python scan.py oss collect -i oss/osscollector/sample -o ./oss_data/collector
+./scan.py oss collect -i oss/osscollector/sample -o ./oss_data/collector
 ```
 
 #### Step 2: Preprocess the Data
@@ -105,7 +119,7 @@ Process collected data to create the component database.
 
 **Command:**
 ```sh
-python scan.py oss preprocess -i <path/to/collector_output> -o <path/to/preprocessor_output> --mode [full|lite]
+./scan.py oss preprocess -i <path/to/collector_output> -o <path/to/preprocessor_output> --mode [full|lite]
 ```
 
 - `-i, --input-dir`: Output directory from the collect step.
@@ -114,7 +128,7 @@ python scan.py oss preprocess -i <path/to/collector_output> -o <path/to/preproce
 
 **Example:**
 ```sh
-python scan.py oss preprocess -i ./oss_data/collector -o ./oss_data/preprocessor --mode full
+./scan.py oss preprocess -i ./oss_data/collector -o ./oss_data/preprocessor --mode full
 ```
 
 #### Step 3: Detect Components in Your Project
@@ -123,7 +137,7 @@ Run the detector using the generated database.
 
 **Command:**
 ```sh
-python scan.py oss detect -d <path/to/your/project> \
+./scan.py oss detect -d <path/to/your/project> \
   -o <path/to/results_dir> \
   --collector-dir <path/to/collector_output> \
   --preprocessor-dir <path/to/preprocessor_output>
@@ -136,7 +150,7 @@ python scan.py oss detect -d <path/to/your/project> \
 
 **Example:**
 ```sh
-python scan.py oss detect -d ./my-awesome-project \
+./scan.py oss detect -d ./my-awesome-project \
   -o ./scan_results \
   --collector-dir ./oss_data/collector \
   --preprocessor-dir ./oss_data/preprocessor
@@ -152,7 +166,7 @@ Uses the OSV DetermineVersion API to find whole libraries copied into vendor-lik
 
 **Command:**
 ```sh
-python scan.py osv api -d <path/to/your/project> -o <path/to/output.json> [--threshold 0.15] [--scan-git]
+./scan.py osv api -d <path/to/your/project> -o <path/to/output.json> [--threshold 0.15] [--scan-git]
 ```
 
 - `-d, --directory`: Project directory to scan.
@@ -162,7 +176,7 @@ python scan.py osv api -d <path/to/your/project> -o <path/to/output.json> [--thr
 
 **Example:**
 ```sh
-python scan.py osv api -d ./my-awesome-project -o osv-api-results.json --threshold 0.2
+./scan.py osv api -d ./my-awesome-project -o osv-api-results.json --threshold 0.2
 ```
 
 #### B) CLI wrapper mode: Enumerating Packages with osv-scanner
@@ -171,7 +185,7 @@ Runs the `osv-scanner` binary and saves a JSON with the discovered packages.
 
 **Command:**
 ```sh
-python scan.py osv cli -d <path/to/your/project> -o <path/to/output.json> [--scanner-path /full/path/to/osv-scanner]
+./scan.py osv cli -d <path/to/your/project> -o <path/to/output.json> [--scanner-path /full/path/to/osv-scanner]
 ```
 
 - `-d, --directory`: Project directory to scan.
@@ -181,11 +195,30 @@ python scan.py osv cli -d <path/to/your/project> -o <path/to/output.json> [--sca
 **Examples:**
 ```sh
 # Use osv-scanner from PATH
-python scan.py osv cli -d ./my-awesome-project -o osv-cli-packages.json
+./scan.py osv cli -d ./my-awesome-project -o osv-cli-packages.json
 
 # Provide an explicit scanner path
-python scan.py osv cli -d ./my-awesome-project -o osv-cli-packages.json --scanner-path /usr/local/bin/osv-scanner
+./scan.py osv cli -d ./my-awesome-project -o osv-cli-packages.json --scanner-path /usr/local/bin/osv-scanner
 ```
+
+### 4. Add-on: Collecting C/C++ Repositories
+
+The toolkit includes `obtain_repo.py`, a script to discover C/C++ repositories on GitHub that use CMake.
+
+**Command:**
+```sh
+./obtain_repo.py -t <your_github_token> -o <path/to/output_dir>
+```
+
+- `-t, --github-token`: A GitHub Personal Access Token is required for API access.
+- `-o, --output-dir`: Directory to save `cmake_repos.json` and `excluded_repos.json`.
+- `-w, --max-workers`: (Optional) Number of concurrent threads to use for processing repositories. Defaults to 20.
+
+**Example:**
+```sh
+./obtain_repo.py -t YOUR_GITHUB_TOKEN -o ./
+```
+This will create `cmake_repos.json` with a list of repositories that use CMake and `excluded_repos.json` for the rest.
 
 ## 📄 License
 
